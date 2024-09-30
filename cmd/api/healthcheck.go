@@ -16,11 +16,11 @@ func (a *applicationDependencies) healthCheckHandler(w http.ResponseWriter, r *h
 //w.Write([]byte(jsResponse))
 
 //encoding JSON V2
-data := map[string]string{
-"status":      "available",
-"environment": a.config.environment,
-"version":     appVersion,
-}
+//data := map[string]string{
+//"status":      "available",
+//"environment": a.config.environment,
+//"version":     appVersion,
+//}
 
 //jsResponse, err := json.Marshal(data)
 //if err != nil {
@@ -32,6 +32,16 @@ data := map[string]string{
 //jsResponse = append(jsResponse, '\n')
 //w.Header().Set("Content-Type", "application/json")
 //w.Write(jsResponse)
+
+//v5
+
+data := envelope {
+	"status": "available",
+	"system_info": map[string]string{
+		"environment": a.config.environment,
+		"version": appVersion,
+	},
+}
 
 err := a.writeJSON(w, http.StatusOK, data, nil)
 if err != nil {
