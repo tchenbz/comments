@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	//"encoding/json"
 	"net/http"
 )
 
@@ -22,15 +22,22 @@ func (a *applicationDependencies) healthCheckHandler(w http.ResponseWriter, r *h
 		"version":     appVersion,
 	}
 
-	jsResponse, err := json.Marshal(data)
-	if err != nil {
-		a.logger.Error(err.Error())
-		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
-		return
-	}
+	//jsResponse, err := json.Marshal(data)
+	//if err != nil {
+	//	a.logger.Error(err.Error())
+	//	http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
+	//	return
+	//}
 
-	jsResponse = append(jsResponse, '\n')
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsResponse)
+	//jsResponse = append(jsResponse, '\n')
+	//w.Header().Set("Content-Type", "application/json")
+	//w.Write(jsResponse)
+
+  err := a.writeJSON(w, http.StatusOK, data, nil)
+  if err != nil {
+    a.logger.Error(err.Error())
+	  http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
+		return
+  }
 
 }
