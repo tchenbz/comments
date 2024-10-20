@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"os"
 	"time"
+
 	_ "github.com/lib/pq"
+	"github.com/tchenbz/comments/internal/data"
 )
 
 const appVersion = "1.0.0"
@@ -25,6 +27,7 @@ type serverConfig struct {
 type applicationDependencies struct {
 	config serverConfig
 	logger *slog.Logger
+	commentModel data.CommentModel
 }
 
 func main() {
@@ -53,6 +56,7 @@ func main() {
 	appInstance := &applicationDependencies {
 		config: settings,
 		logger: logger,
+		commentModel: data.CommentModel{DB: db},
 	}
 
 	//router := http.NewServeMux()
