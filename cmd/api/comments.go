@@ -2,6 +2,7 @@ package main
 
 import (
 	//"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"github.com/tchenbz/comments/internal/data"
@@ -62,4 +63,38 @@ func (a *applicationDependencies)createCommentHandler(w http.ResponseWriter, r *
 
 
 	fmt.Fprintf(w, "%+v\n", incomingData)
+}
+
+func (a *applicationDependencies)displayCommentHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the id from the URL /v1/comments/:id so that we
+	// can use it to query teh comments table. We will 
+	// implement the readIDParam() function later
+	id, err := a.readIDParam(r)
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return 
+	}
+
+	// Call Get() to retrieve the comment with the specified id
+	comment, err := a.commentModel.Get(id)
+	if err != nil {
+		switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+			   a.notFoundResponse(w, r)
+			default:
+			   a.serverErrorResponse(w, r, err)
+		}
+		return 
+	}
+
+	// display the comment
+    data := envelope {
+		"comment": comment,
+	}
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+	a.serverErrorResponse(w, r, err)
+	return 
+	}
+
 }
