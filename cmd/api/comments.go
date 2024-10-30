@@ -205,7 +205,7 @@ func (a *applicationDependencies)listCommentsHandler(w http.ResponseWriter, r *h
 	// get the query parameters from the URL
 	queryParameters := r.URL.Query()
 
-		comments, err := a.commentModel.GetAll(queryParametersData.Content, queryParametersData.Author, queryParametersData.Filters)
+		comments, metadata, err := a.commentModel.GetAll(queryParametersData.Content, queryParametersData.Author, queryParametersData.Filters)
 	if err != nil {
 		a.serverErrorResponse(w, r, err)
 		return
@@ -237,6 +237,7 @@ func (a *applicationDependencies)listCommentsHandler(w http.ResponseWriter, r *h
 
 	data := envelope {
 		"comments": comments,
+		"@metadata": metadata,
 	}
 	err = a.writeJSON(w, http.StatusOK, data, nil)
 	if err != nil {

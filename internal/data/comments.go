@@ -146,11 +146,11 @@ func (c CommentModel) Delete(id int64) error {
 }
 
 // Delete a specific Comment from the comments table
-func (c CommentModel) GetAll(content string, author string, filters Filters) ([]*Comment, error) {
+func (c CommentModel) GetAll(content string, author string, filters Filters) ([]*Comment, Metadata, error) {
 
 	// the SQL query to be executed against the database table
 	query := `
-		SELECT id, created_at, content, author, version
+		SELECT COUNT(*) OVER(), id, created_at, content, author, version
 		FROM comments
 		WHERE (to_tsvector('simple', content) @@
 			plainto_tsquery('simple', $1) OR $1 = '') 
@@ -165,21 +165,22 @@ func (c CommentModel) GetAll(content string, author string, filters Filters) ([]
 	   // QueryContext returns multiple rows.
 	   rows, err := c.DB.QueryContext(ctx, query, content, author, filters.limit(), filters.offset())
 	   if err != nil {
-			return nil, err
+			return nil, Metadata{}, err
 		}
 
 		// clean up the memory that was used
 		defer rows.Close()
+		totalRecords := 0
 		// we will store the address of each comment in our slice
 		comments := []*Comment{}
 
 		// process each row that is in rows
 		for rows.Next() {
 			var comment Comment
-			err := rows.Scan(&comment.ID, &comment.CreatedAt, &comment.Content, &comment.Author, &comment.Version,
+			err := rows.Scan(&totalRecords, &comment.ID, &comment.CreatedAt, &comment.Content, &comment.Author, &comment.Version,
 							 )
 			if err != nil {
-				return nil, err
+				return nil, Metadata{}, err
 			}
 		   // add the row to our slice
 		   comments = append(comments, &comment)
@@ -187,9 +188,12 @@ func (c CommentModel) GetAll(content string, author string, filters Filters) ([]
 		// after we exit the loop we need to check if it generated any errors
 		err = rows.Err()
 		if err != nil {
-		return nil, err
+		return nil, Metadata{}, err
 		}
 
-		return comments, nil
+		// Create the metadata
+		metadata := calculateMetaData(totalRecords, filters.Page, filters.PageSize)
+
+		return comments, metadata, nil
 
 }	
