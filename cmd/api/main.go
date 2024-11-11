@@ -17,11 +17,17 @@ import (
 const appVersion = "1.0.0"
 
 type serverConfig struct {
-	port int
+	port        int
 	environment string
-	db struct {
-        dsn string
+	db          struct {
+		dsn string
+	}
+	limiter struct {
+        rps float64                    
+        burst int                        
+        enabled bool                     
     }
+
 }
 
 type applicationDependencies struct {
@@ -36,6 +42,9 @@ func main() {
 	flag.IntVar(&settings.port, "port", 4000, "Server port")
 	flag.StringVar(&settings.environment, "env", "development", "Environment(development|staging|production)")
 	flag.StringVar(&settings.db.dsn, "db-dsn", "postgres://comments:fishsticks@localhost/comments?sslmode=disable", "PostgreSQL DSN")
+	flag.Float64Var(&settings.limiter.rps, "limiter-rps", 2, "Rate Limiter maximum requests per second")
+	flag.IntVar(&settings.limiter.burst, "limiter-burst", 5, "Rate Limiter maximum burst")
+	flag.BoolVar(&settings.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
